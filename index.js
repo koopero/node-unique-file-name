@@ -1,17 +1,60 @@
 const
+  _ = require('underscore'),
   fs = require('fs'),
   path = require('path'),
   transliteration = require('transliteration')
 ;
 
-exports.format = format;
+const defaultOptions = {
+
+};
+
+module.exports = uniqueFileName;
+uniqueFileName.sync = uniqueFileNameSync;
+uniqueFileName.format = format;
+uniqueFileName.slugify = slugify;
+uniqueFileName.random = random;
+uniqueFileName.touch = touch;
+uniqueFileName.placeholderSync = placeholderSync;
+
+
+function uniqueFileName( opt, filename, cb ) {
+  _.default( opt, {
+    exists: fs.exists
+  })
+
+
+
+  if ( arguments.length == 1 )
+    return unique;
+  else
+    return unique( filename, cb );
+
+  function unique( filename, cb ) {
+
+  }
+}
+
+function uniqueFileNameSync( opt, filename ) {
+  _.default( opt, {
+    exists: fs.existsSync
+  })
+
+  if ( arguments.length == 1 )
+    return uniqueSync;
+  else
+    return uniqueSync( filename );
+
+  function uniqueSync( filename ) {
+
+  }
+}
 
 function format( template, filename, iteration, date ) {
   var
     extname  = path.extname( filename ),
     basename = path.basename( filename, extname ),
-    dirname  = path.dirname( filename ),
-    filename = basename + extname
+    dirname  = path.dirname( filename )
   ;
 
   date = date === undefined ? new Date() : new Date( date );
@@ -35,7 +78,7 @@ function format( template, filename, iteration, date ) {
 
       switch ( specifier ) {
         case 'f':
-          return trim( slugify( filename ) );
+          return trim( slugify( basename ) + slugify( extname, true )  );
 
         case 'b':
           return trim( slugify( basename ) );
@@ -131,7 +174,7 @@ function random( width ) {
   return r;
 }
 
-function placeholder( file, cb ) {
+function touch( file, cb ) {
 
 }
 

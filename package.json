@@ -3,10 +3,11 @@
     "async": "~0.9.0",
     "mkdirp": "~0.5.0",
     "transliteration": "0.0.8",
-    "rimraf": "~2.2.8"
+    "rimraf": "~2.2.8",
+    "underscore": "~1.7.0"
   },
   "name": "unique-file-name",
-  "description": "Creates unique file names",
+  "description": "Creates recognizable, reliable, unique names for files. Perfect for uploads.",
   "version": "0.0.0",
   "main": "index.js",
   "directories": {
