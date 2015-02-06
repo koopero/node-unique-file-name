@@ -7,7 +7,7 @@
     "underscore": "~1.7.0"
   },
   "name": "unique-file-name",
-  "description": "Creates recognizable, reliable, unique names for files. Perfect for uploads.",
+  "description": "Creates safe, recognizable, reliable and unique names for files, in a highly configurable manner. Perfect for uploads.",
   "version": "0.0.0",
   "main": "index.js",
   "directories": {
