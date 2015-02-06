@@ -5,6 +5,10 @@ const
   transliteration = require('transliteration')
 ;
 
+const
+  DISALLOW_CHARS = /[\?\*\#\s\$\<\>\{\}\!\%\&\'\(\)\+\,\;\=\@\[\]\^\`\~\:\\\|\"]/
+;
+
 const defaultOptions = {
 
 };
@@ -15,7 +19,7 @@ uniqueFileName.format = format;
 uniqueFileName.slugify = slugify;
 uniqueFileName.random = random;
 uniqueFileName.touch = touch;
-uniqueFileName.placeholderSync = placeholderSync;
+uniqueFileName.touchSync = touchSync;
 
 
 function uniqueFileName( opt, filename, cb ) {
@@ -178,6 +182,6 @@ function touch( file, cb ) {
 
 }
 
-function placeholderSync( file ) {
+function touchSync( file ) {
 
 }
