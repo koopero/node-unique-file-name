@@ -1,7 +1,8 @@
 const
-  ass = require('assert'),
+  ass = require('chai').assert,
   eq = ass.equal,
   mod = require('../'),
+  sync = mod.sync,
   format = mod.format
 ;
 describe('#format', function() {
@@ -60,3 +61,14 @@ describe('#format', function() {
     }
   });
 });
+
+describe('sync', function ( cb ) {
+  it('will make curry', function () {
+    ass.isFunction ( sync( { } ) );
+  });
+});
+
+describe('uniqueFileName', function ( cb ) {
+
+});
+
