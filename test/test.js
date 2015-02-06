@@ -2,9 +2,17 @@ const
   ass = require('chai').assert,
   eq = ass.equal,
   mod = require('../'),
+  path = require('path'),
+  fs = require('fs'),
+  resolve = path.resolve,
+  scratch = resolve.bind( this, __dirname, 'scratch' ),
+  rimraf = require('rimraf'),
   sync = mod.sync,
-  format = mod.format
+  touchSync = mod.touchSync,
+  format = mod.format,
+  existsSync = fs.existsSync
 ;
+
 describe('#format', function() {
   it('will format dates', function () {
     var date = new Date('April 12, 1961, 06:07');
@@ -51,6 +59,7 @@ describe('#format', function() {
   it('will slugify filenames', function () {
     eq( format('%b', '.file' ), 'file' );
     eq( format('%b', 'i hate spaces in file names' ), 'i_hate_spaces_in_file_names' );
+    eq( format('%b', '.htaccess' ), 'htaccess' );
   })
 
   it('will format randoms', function () {
@@ -62,13 +71,51 @@ describe('#format', function() {
   });
 });
 
+describe('touchSync', function () {
+  it('should touch a file', function () {
+    var file = scratch('foo/bar');
+    touchSync( file );
+
+    var stat = fs.statSync( file );
+    eq( stat.size, 0 );
+  });
+
+  after( wipeScratch );
+});
+
 describe('sync', function ( cb ) {
+  before( wipeScratch );
+
   it('will make curry', function () {
     ass.isFunction ( sync( { } ) );
   });
+
+
+  it('will actually do something', function () {
+    var func = sync( {
+      dir: scratch(),
+      format: 'dir/%b%i'
+    } );
+
+    eq( func('a'), scratch('dir/a') );
+    ass( existsSync( scratch('dir/a' ) ), 'file not touched' );
+    eq( func('a'), scratch('dir/a1') );
+    ass( existsSync( scratch('dir/a1' ) ), 'file not touched' );
+    eq( func('b'), scratch('dir/b') );
+    ass( existsSync( scratch('dir/b' ) ), 'file not touched' );
+
+  });
+
+  after( wipeScratch );
 });
+
+
 
 describe('uniqueFileName', function ( cb ) {
 
 });
 
+
+function wipeScratch() {
+  rimraf.sync( scratch() );
+}

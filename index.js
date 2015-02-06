@@ -1,7 +1,9 @@
 const
   _ = require('underscore'),
   fs = require('fs'),
+  mkdirp = require('mkdirp'),
   path = require('path'),
+  resolve = path.resolve,
   transliteration = require('transliteration')
 ;
 
@@ -10,7 +12,7 @@ const
 ;
 
 const defaultOptions = {
-
+  iterations: 100,
 };
 
 module.exports = uniqueFileName;
@@ -35,14 +37,32 @@ function uniqueFileName( opt, filename, cb ) {
     return unique( filename, cb );
 
   function unique( filename, cb ) {
+    if ( 'function' == typeof filename ) {
+      cb = filename;
+      filename = '';
+    }
+
 
   }
 }
 
 function uniqueFileNameSync( opt, filename ) {
-  _.default( opt, {
-    exists: fs.existsSync
+  if ( 'string' == typeof opt ) {
+    opt = {
+      format: opt
+    }
+  }
+
+
+  _.defaults( opt, {
+    exists: fs.existsSync,
+    dir: process.cwd(),
+    touch: touchSync
   })
+
+  _.defaults( opt, defaultOptions );
+
+
 
   if ( arguments.length == 1 )
     return uniqueSync;
@@ -50,6 +70,35 @@ function uniqueFileNameSync( opt, filename ) {
     return uniqueSync( filename );
 
   function uniqueSync( filename ) {
+
+    var
+      iteration = 0,
+      uniqname,
+      fullname
+    ;
+
+    while (
+      iteration < opt.iterations
+    ) {
+
+      uniqname = format( opt.format, filename, iteration++ );
+      fullname = resolve( opt.dir, uniqname );
+
+      if ( opt.exists && opt.exists( fullname ) )
+        continue;
+
+      break;
+    }
+
+    if ( !uniqname ) {
+      throw new Error("Couldn't find unique name");
+    }
+
+    if ( opt.touch ) {
+      opt.touch( fullname );
+    }
+
+    return fullname;
 
   }
 }
@@ -74,7 +123,7 @@ function format( template, filename, iteration, date ) {
 
 
   return template.replace(
-    /\%([0])?(\d*?)(\.\d+)?([irBbFfEeYMDhmsztT])/g,
+    /\%([0\.])?(\d*?)(\.\d+)?([irBbFfEeYMDhmsztT])/g,
     function ( tag, flags, width, precision, specifier ) {
       var radix;
 
@@ -183,5 +232,7 @@ function touch( file, cb ) {
 }
 
 function touchSync( file ) {
-
+  var dirname = path.dirname( file );
+  mkdirp.sync( dirname );
+  fs.writeFileSync( file, '' );
 }
