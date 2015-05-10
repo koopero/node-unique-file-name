@@ -14,7 +14,6 @@ Creates unique file names
 * `z` - hex counter
 * `t` - base-36 counter
 * `r` - Random string of characters [A-Za-z0-9]
-
 * `B` - Basename of file
 * `b` - Basename of file, slugified. 
 * `F` - Basename of file
@@ -23,7 +22,6 @@ Creates unique file names
 * `e` - Extname of file, slugified. 
 * `P` - Dirname of file.
 * `p` - Dirname of file, slugified.
-
 * `Y` - Year 
 * `M` - Month [1-12]
 * `D` - Day of month [1-31]
@@ -37,6 +35,10 @@ Creates unique file names
 ### %Y%M%D/%16b%.i%8.e
 
 ### Camera_%10T/%h%m%0.4s.png
+
+## Slugification
+
+
 
 # Options
 

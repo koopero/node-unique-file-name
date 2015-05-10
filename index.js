@@ -1,5 +1,7 @@
 const
   _ = require('underscore'),
+  ass = require('chai').assert,
+  async = require('async'),
   fs = require('fs'),
   mkdirp = require('mkdirp'),
   path = require('path'),
@@ -8,7 +10,16 @@ const
 ;
 
 const
-  DISALLOW_CHARS = /[\?\*\#\s\$\<\>\{\}\!\%\&\'\(\)\+\,\;\=\@\[\]\^\`\~\:\\\|\"]/
+  // RANDOM_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+  // Less entropy, but prettier.
+  RANDOM_SET = 'BCDGJOPQRSUabcdefghjnopqrstuy0235689',
+
+  // /\s/, '.', '\' and '/' are handled in their own way and not included.
+  SYSTEM_CHARS = /[\s\?\*\#\$\<\>\{\}\!\%\&\'\(\)\+\,\;\=\@\[\]\^\`\~\:\|\"]/g,
+  TRAILING_SLASHES = /[\\\/]*$/,
+  PATH_SEPS = /[\\\/]/g,
+
+  PRECISION = 3
 ;
 
 const defaultOptions = {
@@ -53,7 +64,6 @@ function uniqueFileNameSync( opt, filename ) {
     }
   }
 
-
   _.defaults( opt, {
     exists: fs.existsSync,
     dir: process.cwd(),
@@ -62,7 +72,16 @@ function uniqueFileNameSync( opt, filename ) {
 
   _.defaults( opt, defaultOptions );
 
+  if ( opt.touch )
+    ass.isFunction( opt.touch, 'opt.touch must be function or falsy' );
 
+  if ( opt.exists )
+    ass.isFunction( opt.exists, 'opt.exists must be function or falsy' );
+
+  opt = _.clone(opt);
+
+
+  uniqueSync.reset = reset;
 
   if ( arguments.length == 1 )
     return uniqueSync;
@@ -70,7 +89,6 @@ function uniqueFileNameSync( opt, filename ) {
     return uniqueSync( filename );
 
   function uniqueSync( filename ) {
-
     var
       iteration = 0,
       uniqname,
@@ -99,18 +117,20 @@ function uniqueFileNameSync( opt, filename ) {
     }
 
     return fullname;
+  }
+
+  function reset() {
 
   }
+
 }
 
-function format( template, filename, iteration, date ) {
+function format( template, filename, iteration, time ) {
   var
     extname  = path.extname( filename ),
     basename = path.basename( filename, extname ),
     dirname  = path.dirname( filename )
   ;
-
-  date = date === undefined ? new Date() : new Date( date );
 
   iteration = parseInt( iteration ) || 0;
 
@@ -121,32 +141,57 @@ function format( template, filename, iteration, date ) {
   if ( dirname && dirname.substr( -1 ) != '/' )
     dirname = dirname + '/';
 
+  var slug = slugify;
 
   return template.replace(
-    /\%([0\.])?(\d*?)(\.\d+)?([irBbFfEeYMDhmsztT])/g,
-    function ( tag, flags, width, precision, specifier ) {
+    /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztT])/g,
+    function ( tag, flags, width, precision,  specifier ) {
       var radix;
+
+      if ( precision )
+        precision = parseInt( precision.substr(1) ) || PRECISION;
 
       width = parseInt( width );
 
       switch ( specifier ) {
+        case 'F':
+          return trim( basename + extname );
+
         case 'f':
-          return trim( slugify( basename ) + slugify( extname, true )  );
+          return trim( slug( 'base', basename ) + slug( 'ext', extname )  );
+
+        case 'B':
+          return trim( basename );
 
         case 'b':
-          return trim( slugify( basename ) );
+          return trim( slug( 'base', basename ) );
+
+        case 'E':
+          return trim( extname );
 
         case 'e':
-          return trim( slugify( extname, true ) );
+          return trim( slug( 'ext', extname ) );
+
+        case 'P':
+          if ( dirname && dirname != '.' ) {
+            return trim( slug( 'dir', dirname ) ) + path.sep;
+          } else {
+            return '';
+          }
+
+        case 'p':
+          if ( dirname && dirname != '.' ) {
+            return trim( slug( 'dir', dirname ) ) + path.sep;
+          } else {
+            return '';
+          }
 
         case 'i':
           radix = radix || 10;
           // falls through
         case 'z':
           radix = radix || 16;
-          // falls through
-        case 't':
-          radix = radix || 36
+
           if ( width )
             return pad( iteration.toString( radix ) );
 
@@ -160,18 +205,34 @@ function format( template, filename, iteration, date ) {
 
         case 'r':
           return random( width );
+
+        case 't':
+          return trimFloat(
+            time instanceof Date ?
+              time.getTime()
+            :
+              parseFloat( time ) || 0
+          );
+      }
+
+      time = time === undefined ? new Date() : new Date( time );
+      if ( !precision && !width )
+        width = 2;
+
+      switch ( specifier ) {
+        case 's':
+          return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 );
       }
 
       width = width || 2;
 
       switch ( specifier ) {
-        case 'T': return date.toJSON();
-        case 'Y': return padTrim( date.getFullYear() );
-        case 'M': return padTrim( date.getMonth() + 1 );
-        case 'D': return padTrim( date.getDate() );
-        case 'h': return padTrim( date.getHours() );
-        case 'm': return padTrim( date.getMinutes() );
-        case 's': return padTrim( date.getSeconds() );
+        case 'T': return time.toJSON();
+        case 'Y': return padTrim( time.getFullYear() );
+        case 'M': return padTrim( time.getMonth() + 1 );
+        case 'D': return padTrim( time.getDate() );
+        case 'h': return padTrim( time.getHours() );
+        case 'm': return padTrim( time.getMinutes() );
       }
 
       function trim ( str ) {
@@ -179,9 +240,34 @@ function format( template, filename, iteration, date ) {
         return width ? str.substr( 0, width ) : str;
       }
 
+      function trimFloat( num ) {
+        var
+          str = num.toFixed( precision ),
+          split = str.split('.'),
+          integer = split[0],
+          decimal = split[1]
+        ;
+
+        console.log(tag, str, parseInt( precision ), split, integer, decimal );
+
+        str = width ?
+            flags == '0' ?
+                padTrim( integer )
+              :
+                pad( integer )
+          :
+            integer
+        ;
+
+        if ( decimal )
+          str += '.'+decimal;
+
+        return str;
+      }
+
       function pad ( num ) {
         num = String( num );
-        while ( num.length < width ) {
+        while ( width && num.length < width ) {
           num = '0'+num;
         }
         return num;
@@ -189,23 +275,36 @@ function format( template, filename, iteration, date ) {
 
       function padTrim ( num ) {
         num = pad( num );
-        if ( num.length > width )
+
+        if ( width && num.length > width )
           num = num.substr( num.length - width );
 
         return num;
       }
-
     }
   );
 }
 
-function slugify( str, allowLeadingDot ) {
+function slugify( type, str ) {
   // Remove leading .
-  while ( str[0] == '.' && !allowLeadingDot )
+  while ( type != 'ext' && str[0] == '.' )
     str = str.substr( 1 );
 
   // Replace whitespace with _
   str = str.replace(/\s+/g, '_' );
+
+  // Remove non-ascii words as eloquently as possible.
+  str = transliteration( str );
+
+  if ( type == 'dir' ) {
+    str = str.replace( TRAILING_SLASHES, '');
+  } else {
+    str = str.replace( PATH_SEPS, '');
+  }
+
+  // Remove characters that with special meaning
+  // to the system.
+  str = str.replace( SYSTEM_CHARS, '' );
 
   return str;
 }
@@ -214,25 +313,35 @@ function random( width ) {
   width = width || 4;
 
   var
-    //set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
-    // Less entropy, but prettier.
-    set = 'BCDGJOPQRSUabcdefgjnopqrstuy0235689',
     i = 0,
     r = ''
   ;
 
   for ( ; i < width; i ++ )
-    r += set[ Math.floor( Math.random() * set.length ) ];
+    r += RANDOM_SET[ Math.floor( Math.random() * RANDOM_SET.length ) ];
 
   return r;
 }
 
 function touch( file, cb ) {
-
+  var dirname = path.dirname( file );
+  async.series([
+    function mkdir( cb ) {
+      mkdirp( dirname, cb );
+    },
+    function writeFile( cb ) {
+      fs.writeFile( file, '', cb );
+    }
+  ], cb );
 }
 
 function touchSync( file ) {
-  var dirname = path.dirname( file );
-  mkdirp.sync( dirname );
-  fs.writeFileSync( file, '' );
+  try {
+    var dirname = path.dirname( file );
+    mkdirp.sync( dirname );
+    fs.writeFileSync( file, '' );
+    return true;
+  } catch ( e ) {
+    return false;
+  }
 }
