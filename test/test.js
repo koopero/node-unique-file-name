@@ -5,16 +5,32 @@ const
   async = require('async'),
   mod = require('../'),
   path = require('path'),
-  fs = require('fs'),
+  fs = require('fs-extra'),
   resolve = path.resolve,
   scratch = resolve.bind( this, __dirname, 'scratch' ),
-  rimraf = require('rimraf'),
   sync = mod.sync,
   touch = mod.touch,
   touchSync = mod.touchSync,
   format = mod.format,
   existsSync = fs.existsSync
 ;
+
+describe('random', function() {
+  const random = mod.random
+  it('will output the proper length', function () {
+    eq( random(5).length, 5 )
+    eq( random(50).length, 50 )
+  })
+
+  it('will produce output without duplicates', function () {
+    var randoms = []
+    for ( var i = 0; i < 100; i ++ )
+      randoms.push( random( 6 ) )
+
+    var uniques = _.uniq( randoms )
+    eq( uniques.length, randoms.length, "Duplicates from random. This may occur occasionally.")
+  })
+})
 
 describe('format', function() {
 
@@ -111,45 +127,38 @@ describe('format', function() {
   })
 });
 
-describe('touch', function () {
-  it('should touch a file', function ( cb ) {
-    var file = scratch('touch/async');
-    touch( file, function ( err ) {
-      ass( !err );
-      ass( existsSync( file ) );
-      cb();
-    } );
-  })
-});
-
-describe('touchSync', function () {
-  it('should touch a file', function () {
-    var file = scratch('foo/bar');
-    ass( touchSync( file ), 'did not return true');
-
-    var stat = fs.statSync( file );
-    eq( stat.size, 0 );
-  });
-
-  it("should return false when it can't", function () {
-    // foo/bar is a file, not a directory after 
-    // the last test, so creating it will fail.
-    var file = scratch('foo/bar/foo');
-    ass( !touchSync( file ) );
-  });
-
-  after( wipeScratch );
-});
-
 describe('sync', function ( cb ) {
-  before( wipeScratch );
-
   it('will make curry', function () {
     ass.isFunction ( sync( { } ) );
   });
 
+  it('will throw exception on uniqueness error', function () {
+    wipeScratch()
+    var func = sync( {
+      dir: scratch(),
+      format: 'dir/%b'
+    } );
 
-  it('will actually do something', function () {
+    eq( func('a'), scratch('dir/a') );
+    ass( existsSync( scratch('dir/a' ) ), 'first file not touched' );
+
+    var threw
+
+    // func('a')
+
+    try {
+      func('a')
+    } catch( err ) {
+      threw = err
+      ass.isNumber( err.iterations, "Error didn't include .iterations")
+      ass( err.iterations < 3, "Too many iterations for trivial problem")
+    }
+
+    ass( threw, "Did not throw error")
+  });
+
+  it('will write to a real filesystem', function () {
+    wipeScratch()
     var func = sync( {
       dir: scratch(),
       format: 'dir/%b%i'
@@ -161,7 +170,6 @@ describe('sync', function ( cb ) {
     ass( existsSync( scratch('dir/a1' ) ), 'file not touched' );
     eq( func('b'), scratch('dir/b') );
     ass( existsSync( scratch('dir/b' ) ), 'file not touched' );
-
   });
 
   after( wipeScratch );
@@ -175,8 +183,7 @@ describe('uniqueFileName', function ( cb ) {
       fs = mockFS(),
       opt = {
         dir: '/dir/',
-        exists: fs.exists,
-        touch: fs.touch,
+        fs: fs,
         format: '%b%0i'
       },
       func = mod( opt ),
@@ -203,8 +210,7 @@ describe('uniqueFileName', function ( cb ) {
       fs = mockFS(),
       opt = {
         dir: '/dir/',
-        exists: fs.exists,
-        touch: fs.touch,
+        fs: fs,
         format: '%b%0i'
       },
       func = mod( opt ),
@@ -236,7 +242,7 @@ describe('uniqueFileName', function ( cb ) {
 //  ----------------------
 
 function wipeScratch() {
-  rimraf.sync( scratch() );
+  fs.removeSync( scratch() );
 }
 
 function hasNonASCII ( str ) {
@@ -261,8 +267,8 @@ function mockFS() {
   return {
     exists: exists,
     existsSync: existsSync,
-    touch: touch,
-    touchSync: touchSync,
+    ensureFile: touch,
+    ensureFileSync: touchSync,
     count: count,
   }
 
