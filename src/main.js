@@ -1,5 +1,6 @@
 const
   async   = require('async'),
+  errors  = require('./errors'),
   format  = require('./format'),
   options = require('./options')
 
@@ -72,8 +73,11 @@ function uniqueFileName( opt, filename, cb ) {
 
       if ( result === success ) {
         touch();
-      } else {
+      } else if ( result ) {
         finish( result );
+      } else {
+        var error = new errors.UniquenessError( iteration );
+        finish( error );
       }
     }
 

@@ -235,6 +235,22 @@ describe('uniqueFileName', function ( cb ) {
     }
   })
 
+  it('will callback with an error on uniqueness failure', function( cb ) {
+    const 
+      fs = mockFS(),
+      opt = {
+        fs: fs,
+        format: '%b%0i'
+      },
+      func = mod( opt )
+
+    fs.alwaysExists()
+    func( 'foo', function( err, filename ) {
+      ass( err )
+      cb()
+    })
+    
+  })
 });
 
 //  ----------------------
@@ -261,10 +277,12 @@ function hasNonASCII ( str ) {
  */
 function mockFS() {
   var 
+    alwaysExists = false,
     files = {}
   ;
 
   return {
+    alwaysExists: setAlwaysExists,
     exists: exists,
     existsSync: existsSync,
     ensureFile: touch,
@@ -272,9 +290,13 @@ function mockFS() {
     count: count,
   }
 
+  function setAlwaysExists() {
+    alwaysExists = true
+  }
+
   function exists( filename, cb ) {
     delay( function() {
-      cb( null, !!files[filename] )
+      cb( null, existsSync( filename ) )
     })
   }
 
@@ -286,7 +308,7 @@ function mockFS() {
   }
 
   function existsSync( filename ) {
-    return !!files[filename];
+    return alwaysExists || !!files[filename];
   }
 
   function touchSync( filename ) {

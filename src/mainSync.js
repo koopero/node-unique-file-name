@@ -36,7 +36,7 @@ function uniqueFileNameSync( opt, filename ) {
           uniqname = null
           break;
         }
-        
+
         lastname = uniqname
         uniqname = null
         continue;
@@ -46,7 +46,8 @@ function uniqueFileNameSync( opt, filename ) {
     }
 
     if ( !uniqname ) {
-      throw new errors.UniquenessError( iteration )
+      var error = new errors.UniquenessError( iteration )
+      throw error;
     }
 
     if ( opt.fs ) {
