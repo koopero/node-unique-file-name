@@ -4,16 +4,14 @@ Creates unique file names
 # Features
 
 * Output filenames will be unique.
-* Ensure that filenames contain no special characters, and may be used un-escaped as shell command arguments.
+* Ensure that filenames contain no special characters, and may be used unescaped as shell command arguments.
 * Organize files by date and time.
-
+* Output filenames will be recognizable.
 
 # Format
 
-* `i` - integer counter, starting from 0. 
-* `z` - hex counter
-* `t` - base-36 counter
-* `r` - Random string of characters [A-Za-z0-9]
+## Filename
+
 * `B` - Basename of file
 * `b` - Basename of file, slugified. 
 * `F` - Basename of file
@@ -22,6 +20,12 @@ Creates unique file names
 * `e` - Extname of file, slugified. 
 * `P` - Dirname of file.
 * `p` - Dirname of file, slugified.
+
+## Index
+* `i` - integer counter, starting from 0. 
+* `z` - hex counter
+
+## Date
 * `Y` - Year 
 * `M` - Month [1-12]
 * `D` - Day of month [1-31]
@@ -29,6 +33,11 @@ Creates unique file names
 * `m` - Minute [0-59]
 * `s` - Second [0-59]. Use `%.3s` to include fractional component.
 * `T` - Full JSON date ('1961-04-12T13:07:00.000Z')
+* `t` - Timestamp in milliseconds since the unix epoch
+
+## Misc
+* `r` - Random string of characters [A-Za-z0-9]
+
 
 ## Examples
 

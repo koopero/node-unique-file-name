@@ -1,11 +1,10 @@
 const
-  _ = require('underscore'),
+  _ = require('lodash'),
   ass = require('chai').assert,
   async = require('async'),
   fs = require('fs'),
   mkdirp = require('mkdirp'),
   path = require('path'),
-  resolve = path.resolve,
   transliteration = require('transliteration')
 ;
 
@@ -24,6 +23,7 @@ const
 
 const defaultOptions = {
   iterations: 100,
+  path: require('path'),
 };
 
 module.exports = uniqueFileName;
@@ -36,11 +36,12 @@ uniqueFileName.touchSync = touchSync;
 
 
 function uniqueFileName( opt, filename, cb ) {
-  _.default( opt, {
-    exists: fs.exists
+  opt = parseOptions( opt, {
+    exists: fs.exists,
+    touch: touch
   })
 
-
+  var reserve = {};
 
   if ( arguments.length == 1 )
     return unique;
@@ -53,44 +54,98 @@ function uniqueFileName( opt, filename, cb ) {
       filename = '';
     }
 
+    var
+      iteration = 0,
+      time
+    ;
+
+    var
+      uniqname,
+      fullname,
+      success = {}
+    ;
+
+    async.whilst(
+      function () { return iteration < opt.iterations; },
+      iterate,
+      complete
+    );
+
+    function iterate( cb )  {
+      uniqname = format( opt.format, filename, iteration++, time, opt );
+      fullname = opt.path.resolve( opt.dir, uniqname );
+
+      if ( opt.exists ) {
+        if ( reserve[fullname] ) {
+          onExists( null, true )
+        } else {
+          reserve[fullname] = true;
+          opt.exists( fullname, onExists )          
+        }
+      } else {
+        onExists( null, false )
+      }
+
+      function onExists( err, exists ) {
+        if ( err ) {
+          cb( err );
+          return;
+        }
+
+        if ( !exists ) {
+          cb( success );
+        } else {
+          cb();
+        }
+      }      
+    }
+
+    function complete( result ) {
+      delete reserve[fullname];
+
+      if ( result === success ) {
+        touch();
+      } else {
+        finish( result );
+      }
+    }
+
+    function touch() {
+      if ( opt.touch ) {
+        opt.touch( fullname, finish )
+      } else {
+        finish()
+      }
+    }
+
+    function finish( err ) {
+      if ( err ) {
+        cb( err )
+      } else {
+        cb( null, fullname )
+      }
+    }
 
   }
 }
 
 function uniqueFileNameSync( opt, filename ) {
-  if ( 'string' == typeof opt ) {
-    opt = {
-      format: opt
-    }
-  }
-
-  _.defaults( opt, {
+  opt = parseOptions( opt, {
     exists: fs.existsSync,
-    dir: process.cwd(),
     touch: touchSync
-  })
-
-  _.defaults( opt, defaultOptions );
-
-  if ( opt.touch )
-    ass.isFunction( opt.touch, 'opt.touch must be function or falsy' );
-
-  if ( opt.exists )
-    ass.isFunction( opt.exists, 'opt.exists must be function or falsy' );
-
-  opt = _.clone(opt);
-
+  } );
 
   uniqueSync.reset = reset;
 
   if ( arguments.length == 1 )
     return uniqueSync;
   else
-    return uniqueSync( filename );
+    return uniqueSync.apply( null, _.slice( arguments, 1 ) );
 
-  function uniqueSync( filename ) {
+  function uniqueSync( filename, iteration, time ) {
+    iteration = parseInt( iteration ) || 0;
+
     var
-      iteration = 0,
       uniqname,
       fullname
     ;
@@ -99,11 +154,13 @@ function uniqueFileNameSync( opt, filename ) {
       iteration < opt.iterations
     ) {
 
-      uniqname = format( opt.format, filename, iteration++ );
-      fullname = resolve( opt.dir, uniqname );
+      uniqname = format( opt.format, filename, iteration++, time, opt );
+      fullname = opt.path.resolve( opt.dir, uniqname );
 
-      if ( opt.exists && opt.exists( fullname ) )
+      if ( opt.exists && opt.exists( fullname ) ) {
+        uniqname = null;
         continue;
+      }
 
       break;
     }
@@ -125,8 +182,38 @@ function uniqueFileNameSync( opt, filename ) {
 
 }
 
-function format( template, filename, iteration, time ) {
+function parseOptions( opt, defaults ) {
+  if ( 'string' == typeof opt ) {
+    opt = {
+      format: opt
+    }
+  }
+
+  _.defaults( 
+    opt, 
+    {
+      dir: process.cwd(),
+    }, 
+    defaults,
+    defaultOptions
+  );
+
+  if ( opt.touch )
+    ass.isFunction( opt.touch, 'opt.touch must be function or falsy' );
+
+  if ( opt.exists )
+    ass.isFunction( opt.exists, 'opt.exists must be function or falsy' );
+
+  opt = _.clone(opt);
+
+  return opt;
+}
+
+function format( template, filename, iteration, time, opt ) {
+  opt = opt || {};
+
   var
+    path     = opt.path || require('path'),
     extname  = path.extname( filename ),
     basename = path.basename( filename, extname ),
     dirname  = path.dirname( filename )
@@ -142,6 +229,7 @@ function format( template, filename, iteration, time ) {
     dirname = dirname + '/';
 
   var slug = slugify;
+  var useUTC = false;
 
   return template.replace(
     /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztT])/g,
@@ -197,7 +285,7 @@ function format( template, filename, iteration, time ) {
 
           if ( !iteration )
             if ( flags == '0' )
-              return '0'
+              return '0';
             else
               return '';
 
@@ -215,24 +303,62 @@ function format( template, filename, iteration, time ) {
           );
       }
 
-      time = time === undefined ? new Date() : new Date( time );
+      //
+      // Resolve `time` to be a Date object.
+      // 
+      if ( time === undefined ) {
+        // Default is now.
+        time = new Date();
+      } else if ( 'number' == typeof time ) {
+        // Convert from a Number to a Date.
+        // A few liberties are taken here to allow the library to process
+        // timecode style input. By default, Date will take UTC
+        // milliseconds the epoch numbers as input. If output is in local
+        // time zone ( default ), this will produce unexpected output for
+        // small numbers. Instead, we treat Number conversion as being in
+        // the output time zone so that 'zero' for Number conversion
+        // always starts at midnight.
+
+        if ( !useUTC )
+          time += new Date( time ).getTimezoneOffset() * 60 * 1000;
+
+        time = new Date( time );
+      } else if ( !(time instanceof Date ) ) {
+        time = new Date( time );
+      }
+
       if ( !precision && !width )
         width = 2;
 
       switch ( specifier ) {
         case 's':
-          return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 );
+          if ( useUTC )
+            return trimFloat( time.getUTCSeconds() + time.getUTCMilliseconds() / 1000 );
+          else
+            return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 );
+
+        case 'T': 
+          return time.toJSON();
       }
 
       width = width || 2;
 
-      switch ( specifier ) {
-        case 'T': return time.toJSON();
-        case 'Y': return padTrim( time.getFullYear() );
-        case 'M': return padTrim( time.getMonth() + 1 );
-        case 'D': return padTrim( time.getDate() );
-        case 'h': return padTrim( time.getHours() );
-        case 'm': return padTrim( time.getMinutes() );
+      if ( useUTC ) {
+        switch ( specifier ) {
+          case 'Y': return padTrim( time.getUTCFullYear() );
+          case 'M': return padTrim( time.getUTCMonth() + 1 );
+          case 'D': return padTrim( time.getUTCDate() );
+          case 'h': return padTrim( time.getUTCHours() );
+          case 'm': return padTrim( time.getUTCMinutes() );
+        }
+      } else {
+        switch ( specifier ) {
+          case 'Y': return padTrim( time.getFullYear() );
+          case 'M': return padTrim( time.getMonth() + 1 );
+          case 'D': return padTrim( time.getDate() );
+          case 'h': return padTrim( time.getHours() );
+          case 'm': return padTrim( time.getMinutes() );
+        }
       }
 
       function trim ( str ) {
@@ -247,8 +373,6 @@ function format( template, filename, iteration, time ) {
           integer = split[0],
           decimal = split[1]
         ;
-
-        console.log(tag, str, parseInt( precision ), split, integer, decimal );
 
         str = width ?
             flags == '0' ?
@@ -309,6 +433,10 @@ function slugify( type, str ) {
   return str;
 }
 
+/**
+ *  Produces a string of random character of a certain width.
+ *  Uses the character set RANDOM_SET.
+ */
 function random( width ) {
   width = width || 4;
 
