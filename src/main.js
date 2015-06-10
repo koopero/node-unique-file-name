@@ -6,26 +6,27 @@ const
 
 module.exports = uniqueFileName
 
-function uniqueFileName( opt, filename, cb ) {
+function uniqueFileName( opt, filename, iteration, time, cb ) {
   opt = options( opt )
 
   var reserve = {}
 
+  // Curry
   if ( arguments.length == 1 )
     return unique
   else
-    return unique( filename, cb )
+    return unique.apply( null, _.slice( arguments, 1 ) )
 
-  function unique( filename, cb ) {
-    if ( 'function' == typeof filename ) {
-      cb = filename
-      filename = ''
+  function unique( filename, iteration, time, cb ) {
+    // Parse arguments to ensure that cb is a function
+    // regardless of argument length
+    const argLen = arguments.length
+    if ( argLen < 4 && 'function' == typeof arguments[argLen-1] ) {
+      cb = arguments[argLen-1]
+      arguments[argLen-1] = null
     }
 
-    var
-      iteration = 0,
-      time
-    
+    iteration = parseInt( iteration ) || 0
 
     var
       uniqname,

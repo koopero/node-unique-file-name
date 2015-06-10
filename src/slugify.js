@@ -9,7 +9,7 @@ const
 
 module.exports = slugify
 
-function slugify( type, str ) {
+function slugify (type,str) {
   // Remove leading .
   while ( type != 'ext' && str[0] == '.' )
     str = str.substr( 1 )

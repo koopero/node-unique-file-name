@@ -11,7 +11,7 @@ const defaultOptions = {
 
 module.exports = parseOptions
 
-function parseOptions( opt, defaults ) {
+function parseOptions( opt, isSync ) {
   if ( 'string' == typeof opt ) {
     opt = {
       format: opt
@@ -27,13 +27,28 @@ function parseOptions( opt, defaults ) {
     defaultOptions
   )
 
-  if ( opt.touch )
-    ass.isFunction( opt.touch, 'opt.touch must be function or falsy' )
-
-  if ( opt.exists )
-    ass.isFunction( opt.exists, 'opt.exists must be function or falsy' )
-
   opt = _.clone(opt)
 
   return opt
+}
+
+function resolvePathlib( pathlib ) {
+  if ( !pathlib )
+    pathlib = require('path')
+
+  if ( 'string' == typeof pathlib ) {
+    pathlib = {
+      'win32': require('path').win32,
+      'posix': require('path').posix
+    }[pathlib]
+  }
+
+  var needFunction = ['parse','format','resolve']
+
+  ass.isFunction( pathlib.parse )
+  ass.isFunction( pathlib.format )
+  ass.isFunction( pathlib. )
+  
+
+
 }
