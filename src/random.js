@@ -21,7 +21,7 @@ function random( width, set ) {
     r = ''
 
   for ( ; i < width; i ++ )
-    r += RANDOM_SET[ Math.floor( Math.random() * RANDOM_SET.length ) ];
+    r += RANDOM_SET[ Math.floor( Math.random() * RANDOM_SET.length ) ]
 
-  return r;
+  return r
 }

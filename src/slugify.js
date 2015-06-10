@@ -12,24 +12,24 @@ module.exports = slugify
 function slugify( type, str ) {
   // Remove leading .
   while ( type != 'ext' && str[0] == '.' )
-    str = str.substr( 1 );
+    str = str.substr( 1 )
 
   // Replace whitespace with _
-  str = str.replace(/\s+/g, '_' );
+  str = str.replace(/\s+/g, '_' )
 
   // Remove non-ascii words as eloquently as possible.
-  str = transliteration( str );
+  str = transliteration( str )
 
   if ( type == 'dir' ) {
-    str = str.replace( TRAILING_SLASHES, '');
+    str = str.replace( TRAILING_SLASHES, '')
   } else {
-    str = str.replace( PATH_SEPS, '');
+    str = str.replace( PATH_SEPS, '')
   }
 
   // Remove characters that with special meaning
   // to the system.
-  str = str.replace( SYSTEM_CHARS, '' );
+  str = str.replace( SYSTEM_CHARS, '' )
 
-  return str;
+  return str
 }
 

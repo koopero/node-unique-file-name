@@ -25,15 +25,15 @@ function parseOptions( opt, defaults ) {
     }, 
     defaults,
     defaultOptions
-  );
+  )
 
   if ( opt.touch )
-    ass.isFunction( opt.touch, 'opt.touch must be function or falsy' );
+    ass.isFunction( opt.touch, 'opt.touch must be function or falsy' )
 
   if ( opt.exists )
-    ass.isFunction( opt.exists, 'opt.exists must be function or falsy' );
+    ass.isFunction( opt.exists, 'opt.exists must be function or falsy' )
 
-  opt = _.clone(opt);
+  opt = _.clone(opt)
 
-  return opt;
+  return opt
 }

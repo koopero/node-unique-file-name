@@ -7,89 +7,89 @@ const
 module.exports = format
 
 function format( template, filename, iteration, time, opt ) {
-  opt = opt || {};
+  opt = opt || {}
 
   var
     path     = opt.path || require('path'),
     extname  = path.extname( filename ),
     basename = path.basename( filename, extname ),
     dirname  = path.dirname( filename )
-  ;
+  
 
-  iteration = parseInt( iteration ) || 0;
+  iteration = parseInt( iteration ) || 0
 
   if ( dirname == '.' )
-    dirname = '';
+    dirname = ''
 
   // Ensure trailing slash on dirname, if it exists
   if ( dirname && dirname.substr( -1 ) != '/' )
-    dirname = dirname + '/';
+    dirname = dirname + '/'
 
-  var slug = slugify;
-  var useUTC = false;
+  var slug = slugify
+  var useUTC = false
 
   return template.replace(
     /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztT])/g,
     function ( tag, flags, width, precision,  specifier ) {
-      var radix;
+      var radix
 
       if ( precision )
-        precision = parseInt( precision.substr(1) ) || PRECISION;
+        precision = parseInt( precision.substr(1) ) || PRECISION
 
-      width = parseInt( width );
+      width = parseInt( width )
 
       switch ( specifier ) {
         case 'F':
-          return trim( basename + extname );
+          return trim( basename + extname )
 
         case 'f':
-          return trim( slug( 'base', basename ) + slug( 'ext', extname )  );
+          return trim( slug( 'base', basename ) + slug( 'ext', extname )  )
 
         case 'B':
-          return trim( basename );
+          return trim( basename )
 
         case 'b':
-          return trim( slug( 'base', basename ) );
+          return trim( slug( 'base', basename ) )
 
         case 'E':
-          return trim( extname );
+          return trim( extname )
 
         case 'e':
-          return trim( slug( 'ext', extname ) );
+          return trim( slug( 'ext', extname ) )
 
         case 'P':
           if ( dirname && dirname != '.' ) {
-            return trim( slug( 'dir', dirname ) ) + path.sep;
+            return trim( slug( 'dir', dirname ) ) + path.sep
           } else {
-            return '';
+            return ''
           }
 
         case 'p':
           if ( dirname && dirname != '.' ) {
-            return trim( slug( 'dir', dirname ) ) + path.sep;
+            return trim( slug( 'dir', dirname ) ) + path.sep
           } else {
-            return '';
+            return ''
           }
 
         case 'i':
-          radix = radix || 10;
+          radix = radix || 10
           // falls through
         case 'z':
-          radix = radix || 16;
+          radix = radix || 16
 
           if ( width )
-            return pad( iteration.toString( radix ) );
+            return pad( iteration.toString( radix ) )
 
           if ( !iteration )
             if ( flags == '0' )
-              return '0';
+              return '0'
             else
-              return '';
+              return ''
 
-          return iteration.toString( radix );
+          return iteration.toString( radix )
 
         case 'r':
-          return random( width );
+          return random( width )
 
         case 't':
           return trimFloat(
@@ -97,7 +97,7 @@ function format( template, filename, iteration, time, opt ) {
               time.getTime()
             :
               parseFloat( time ) || 0
-          );
+          )
       }
 
       //
@@ -105,7 +105,7 @@ function format( template, filename, iteration, time, opt ) {
       // 
       if ( time === undefined ) {
         // Default is now.
-        time = new Date();
+        time = new Date()
       } else if ( 'number' == typeof time ) {
         // Convert from a Number to a Date.
         // A few liberties are taken here to allow the library to process
@@ -117,50 +117,50 @@ function format( template, filename, iteration, time, opt ) {
         // always starts at midnight.
 
         if ( !useUTC )
-          time += new Date( time ).getTimezoneOffset() * 60 * 1000;
+          time += new Date( time ).getTimezoneOffset() * 60 * 1000
 
-        time = new Date( time );
+        time = new Date( time )
       } else if ( !(time instanceof Date ) ) {
-        time = new Date( time );
+        time = new Date( time )
       }
 
       if ( !precision && !width )
-        width = 2;
+        width = 2
 
       switch ( specifier ) {
         case 's':
           if ( useUTC )
-            return trimFloat( time.getUTCSeconds() + time.getUTCMilliseconds() / 1000 );
+            return trimFloat( time.getUTCSeconds() + time.getUTCMilliseconds() / 1000 )
           else
-            return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 );
+            return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 )
 
         case 'T': 
-          return time.toJSON();
+          return time.toJSON()
       }
 
-      width = width || 2;
+      width = width || 2
 
       if ( useUTC ) {
         switch ( specifier ) {
-          case 'Y': return padTrim( time.getUTCFullYear() );
-          case 'M': return padTrim( time.getUTCMonth() + 1 );
-          case 'D': return padTrim( time.getUTCDate() );
-          case 'h': return padTrim( time.getUTCHours() );
-          case 'm': return padTrim( time.getUTCMinutes() );
+          case 'Y': return padTrim( time.getUTCFullYear() )
+          case 'M': return padTrim( time.getUTCMonth() + 1 )
+          case 'D': return padTrim( time.getUTCDate() )
+          case 'h': return padTrim( time.getUTCHours() )
+          case 'm': return padTrim( time.getUTCMinutes() )
         }
       } else {
         switch ( specifier ) {
-          case 'Y': return padTrim( time.getFullYear() );
-          case 'M': return padTrim( time.getMonth() + 1 );
-          case 'D': return padTrim( time.getDate() );
-          case 'h': return padTrim( time.getHours() );
-          case 'm': return padTrim( time.getMinutes() );
+          case 'Y': return padTrim( time.getFullYear() )
+          case 'M': return padTrim( time.getMonth() + 1 )
+          case 'D': return padTrim( time.getDate() )
+          case 'h': return padTrim( time.getHours() )
+          case 'm': return padTrim( time.getMinutes() )
         }
       }
 
       function trim ( str ) {
-        str = String(str);
-        return width ? str.substr( 0, width ) : str;
+        str = String(str)
+        return width ? str.substr( 0, width ) : str
       }
 
       function trimFloat( num ) {
@@ -169,7 +169,7 @@ function format( template, filename, iteration, time, opt ) {
           split = str.split('.'),
           integer = split[0],
           decimal = split[1]
-        ;
+        
 
         str = width ?
             flags == '0' ?
@@ -178,30 +178,30 @@ function format( template, filename, iteration, time, opt ) {
                 pad( integer )
           :
             integer
-        ;
+        
 
         if ( decimal )
-          str += '.'+decimal;
+          str += '.'+decimal
 
-        return str;
+        return str
       }
 
       function pad ( num ) {
-        num = String( num );
+        num = String( num )
         while ( width && num.length < width ) {
-          num = '0'+num;
+          num = '0'+num
         }
-        return num;
+        return num
       }
 
       function padTrim ( num ) {
-        num = pad( num );
+        num = pad( num )
 
         if ( width && num.length > width )
-          num = num.substr( num.length - width );
+          num = num.substr( num.length - width )
 
-        return num;
+        return num
       }
     }
-  );
+  )
 }
