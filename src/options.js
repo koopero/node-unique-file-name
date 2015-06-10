@@ -47,7 +47,7 @@ function resolvePathlib( pathlib ) {
 
   ass.isFunction( pathlib.parse )
   ass.isFunction( pathlib.format )
-  ass.isFunction( pathlib. )
+  ass.isFunction( pathlib.resolve )
   
 
 
