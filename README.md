@@ -4,7 +4,7 @@
 
 * **Unique** - UNF will check to see if a file already exists, and pick a new name if it does.
 * **Safe** - Names will not include special characters, and may be used unescaped as shell command arguments.
-* **Recognizable** - Extensions can be preserved to allow
+* **Recognizable** - File names will look similar to their original form. Extensions can be preserved to allow files to be recognized by the OS.
 * **Secure** - With a random component, file names can be made reasonably unguessable.
 * **Timestamped** - Files and directories can be marked with numeric timestamps in units like year, month and millisecond.
 
@@ -91,6 +91,7 @@ Object or string. If string, will resolve to `{ format: string }`
 * `format` -
 * `touch` - Function used to create empty placeholder file, or `false` to not create them. `function ( filename, cb )` Defaults to `fs-extra.ensureFile` or `fs-extra.ensureFileSync`.
 * `exists` - function used to check if file already exists, or `false` not to check. `function ( filename, cb )`. ( defaults: `fs.exists` or `fs.existsSync` )
+* `UTC` - Format timestamps in UTC rather than local time zone.
 
 # Recipes
 
