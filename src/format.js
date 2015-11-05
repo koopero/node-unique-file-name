@@ -1,5 +1,5 @@
 const
-  slugify    = require('./slugify')
+  slug    = require('./slugify')
 
 const
   PRECISION = 3
@@ -24,9 +24,6 @@ function format( template, filename, iteration, time, opt ) {
   // Ensure trailing slash on dirname, if it exists
   if ( dirname && dirname.substr( -1 ) != '/' )
     dirname = dirname + '/'
-
-  var slug = slugify
-  var useUTC = false
 
   return template.replace(
     /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztT])/g,
@@ -116,7 +113,7 @@ function format( template, filename, iteration, time, opt ) {
         // the output time zone so that 'zero' for Number conversion
         // always starts at midnight.
 
-        if ( !useUTC )
+        if ( !opt.UTC )
           time += new Date( time ).getTimezoneOffset() * 60 * 1000
 
         time = new Date( time )
@@ -129,7 +126,7 @@ function format( template, filename, iteration, time, opt ) {
 
       switch ( specifier ) {
         case 's':
-          if ( useUTC )
+          if ( opt.UTC )
             return trimFloat( time.getUTCSeconds() + time.getUTCMilliseconds() / 1000 )
           else
             return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 )
@@ -140,7 +137,7 @@ function format( template, filename, iteration, time, opt ) {
 
       width = width || 2
 
-      if ( useUTC ) {
+      if ( opt.UTC ) {
         switch ( specifier ) {
           case 'Y': return padTrim( time.getUTCFullYear() )
           case 'M': return padTrim( time.getUTCMonth() + 1 )
