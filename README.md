@@ -45,8 +45,6 @@ namer( untrustedFileName )
 
 **random ( length )**
 
-
-
 ## Format
 
 UNF's filename template format is similar to the standard `printf` format, but with very different keys. Tags with the following format will be replaced:
@@ -56,7 +54,6 @@ UNF's filename template format is similar to the standard `printf` format, but w
 ## Tags
 
 ### Filename
-
 * `B` - Basename of file
 * `b` - Basename of file, slugified.
 * `F` - Basename of file

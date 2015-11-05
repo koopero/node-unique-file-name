@@ -23,7 +23,6 @@ function parseOptions( opt, isSync ) {
     {
       dir: process.cwd(),
     },
-    // defaults,
     defaultOptions
   )
 
