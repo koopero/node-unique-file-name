@@ -1,4 +1,4 @@
-const 
+const
   _     = require('lodash'),
   ass   = require('chai').assert
 
@@ -18,12 +18,12 @@ function parseOptions( opt, isSync ) {
     }
   }
 
-  _.defaults( 
-    opt, 
+  _.defaults(
+    opt,
     {
       dir: process.cwd(),
-    }, 
-    defaults,
+    },
+    // defaults,
     defaultOptions
   )
 
@@ -48,7 +48,7 @@ function resolvePathlib( pathlib ) {
   ass.isFunction( pathlib.parse )
   ass.isFunction( pathlib.format )
   ass.isFunction( pathlib.resolve )
-  
+
 
 
 }
