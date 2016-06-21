@@ -1,8 +1,10 @@
-const
-  slug    = require('./slugify')
+const slug    = require('./slugify')
+const random  = require('./random')
 
 const
   PRECISION = 3
+
+const random = require('./random')
 
 module.exports = format
 
@@ -14,7 +16,7 @@ function format( template, filename, iteration, time, opt ) {
     extname  = path.extname( filename ),
     basename = path.basename( filename, extname ),
     dirname  = path.dirname( filename )
-  
+
 
   iteration = parseInt( iteration ) || 0
 
@@ -99,7 +101,7 @@ function format( template, filename, iteration, time, opt ) {
 
       //
       // Resolve `time` to be a Date object.
-      // 
+      //
       if ( time === undefined ) {
         // Default is now.
         time = new Date()
@@ -131,7 +133,7 @@ function format( template, filename, iteration, time, opt ) {
           else
             return trimFloat( time.getSeconds() + time.getMilliseconds() / 1000 )
 
-        case 'T': 
+        case 'T':
           return time.toJSON()
       }
 
@@ -166,7 +168,7 @@ function format( template, filename, iteration, time, opt ) {
           split = str.split('.'),
           integer = split[0],
           decimal = split[1]
-        
+
 
         str = width ?
             flags == '0' ?
@@ -175,7 +177,7 @@ function format( template, filename, iteration, time, opt ) {
                 pad( integer )
           :
             integer
-        
+
 
         if ( decimal )
           str += '.'+decimal
