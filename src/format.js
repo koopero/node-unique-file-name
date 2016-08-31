@@ -4,8 +4,6 @@ const random  = require('./random')
 const
   PRECISION = 3
 
-const random = require('./random')
-
 module.exports = format
 
 function format( template, filename, iteration, time, opt ) {
@@ -28,7 +26,7 @@ function format( template, filename, iteration, time, opt ) {
     dirname = dirname + '/'
 
   return template.replace(
-    /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztT])/g,
+    /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztTPp])/g,
     function ( tag, flags, width, precision,  specifier ) {
       var radix
 
