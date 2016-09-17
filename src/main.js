@@ -32,7 +32,7 @@ function uniqueFileName( opt, filename, iteration, time, cb ) {
       uniqname,
       fullname,
       success = {}
-    
+
 
     async.whilst(
       function () { return iteration < opt.iterations },
@@ -46,27 +46,22 @@ function uniqueFileName( opt, filename, iteration, time, cb ) {
 
       if ( opt.fs && opt.fs.exists ) {
         if ( reserve[fullname] ) {
-          onExists( null, true )
+          onExists( true )
         } else {
           reserve[fullname] = true
-          opt.fs.exists( fullname, onExists )          
+          opt.fs.exists( fullname, onExists )
         }
       } else {
-        onExists( null, false )
+        onExists( false )
       }
 
-      function onExists( err, exists ) {
-        if ( err ) {
-          cb( err )
-          return
-        }
-
+      function onExists( exists ) {
         if ( !exists ) {
           cb( success )
         } else {
           cb()
         }
-      }      
+      }
     }
 
     function complete( result ) {

@@ -38,7 +38,7 @@ exports.mockFS = function mockFS() {
 
   function exists( filename, cb ) {
     delay( function() {
-      cb( null, existsSync( filename ) )
+      cb( existsSync( filename ) )
     })
   }
 

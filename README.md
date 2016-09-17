@@ -56,8 +56,8 @@ UNF's filename template format is similar to the standard `printf` format, but w
 ### Filename
 * `B` - Basename of file
 * `b` - Basename of file, slugified.
-* `F` - Basename of file
-* `f` - Basename of file, slugified.
+* `F` - Filename with extension
+* `f` - Filename with extension, slugified.
 * `E` - Extname of file, including '.'
 * `e` - Extname of file, slugified.
 * `P` - Dirname of file.

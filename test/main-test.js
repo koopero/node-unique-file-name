@@ -33,6 +33,32 @@ describe('uniqueFileName', function ( cb ) {
     )
   })
 
+  it('will work in series on a real filesystem', function ( cb ) {
+    var
+      fs = require('fs'),
+      opt = {
+        dir: util.scratch(),
+        format: '%b%0i'
+      },
+      func = main( opt ),
+      count = 0,
+      total = 10
+
+
+    async.whilst(
+      function () { return count < total },
+      function ( cb ) {
+        func( 'foo', function( err, filename ) {
+          eq( filename, util.scratch( 'foo'+count ) )
+          ass( util.exists( filename ) )
+          count ++
+          cb()
+        })
+      },
+      cb
+    )
+  })
+
   it('will work in parallel on a mock filesystem', function ( cb ) {
     var
       fs = util.mockFS(),
