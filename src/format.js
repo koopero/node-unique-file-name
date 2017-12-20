@@ -26,8 +26,8 @@ function format( template, filename, iteration, time, opt ) {
     dirname = dirname + '/'
 
   return template.replace(
-    /\%([0])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztTPp])/g,
-    function ( tag, flags, width, precision,  specifier ) {
+    /\%([0-])?(\d*?)(\.\d*)?([irBbFfEeYMDhmsztTPp])/g,
+    function ( tag, flags, width, precision, specifier ) {
       var radix
 
       if ( precision )
@@ -169,6 +169,9 @@ function format( template, filename, iteration, time, opt ) {
 
 
         str = width ?
+            flags && flags[0] == '-' ?
+                trimLower( integer )
+              :
             flags == '0' ?
                 padTrim( integer )
               :
@@ -196,6 +199,15 @@ function format( template, filename, iteration, time, opt ) {
 
         if ( width && num.length > width )
           num = num.substr( num.length - width )
+
+        return num
+      }
+
+      function trimLower ( num ) {
+        num = pad( num )
+
+        if ( width && num.length > width )
+          num = num.substr( 0, width )
 
         return num
       }
