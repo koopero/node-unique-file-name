@@ -1,5 +1,5 @@
 const
-  transliteration = require('transliteration')
+  transliteration = require('transliteration').transliterate
 
 const
   // /\s/, '.', '\\' and '/' are handled in their own way and not included.
@@ -32,4 +32,3 @@ function slugify (type,str) {
 
   return str
 }
-
