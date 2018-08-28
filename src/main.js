@@ -6,7 +6,7 @@ const
 
 module.exports = uniqueFileName
 
-function uniqueFileName( opt, filename, iteration, time, cb ) {
+function uniqueFileName( opt, filename, iteration, time, callback ) {
   opt = options( opt )
 
   var reserve = {}
@@ -17,81 +17,89 @@ function uniqueFileName( opt, filename, iteration, time, cb ) {
   else
     return unique.apply( null, _.slice( arguments, 1 ) )
 
-  function unique( filename, iteration, time, cb ) {
-    // Parse arguments to ensure that cb is a function
-    // regardless of argument length
+  function unique( filename, iteration, time, callback ) {
     const argLen = arguments.length
     if ( argLen < 4 && 'function' == typeof arguments[argLen-1] ) {
-      cb = arguments[argLen-1]
+      callback = arguments[argLen-1]
       arguments[argLen-1] = null
     }
 
-    iteration = parseInt( iteration ) || 0
+    return new Promise( function ( resolve, reject ) { 
+      // Parse arguments to ensure that callback is a function
+      // regardless of argument length
 
-    var
-      uniqname,
-      fullname,
-      success = {}
+      iteration = parseInt( iteration ) || 0
+
+      var
+        uniqname,
+        fullname,
+        success = {}
 
 
-    async.whilst(
-      function () { return iteration < opt.iterations },
-      iterate,
-      complete
-    )
+      async.whilst(
+        function () { return iteration < opt.iterations },
+        iterate,
+        complete
+      )
 
-    function iterate( cb )  {
-      uniqname = format( opt.format, filename, iteration++, time, opt )
-      fullname = opt.path.resolve( opt.dir, uniqname )
+      function iterate( callback )  {
+        uniqname = format( opt.format, filename, iteration++, time, opt )
+        fullname = opt.path.resolve( opt.dir, uniqname )
 
-      if ( opt.fs && opt.fs.exists ) {
-        if ( reserve[fullname] ) {
-          onExists( true )
+        if ( opt.fs && opt.fs.exists ) {
+          if ( reserve[fullname] ) {
+            onExists( true )
+          } else {
+            reserve[fullname] = true
+            opt.fs.exists( fullname, onExists )
+          }
         } else {
-          reserve[fullname] = true
-          opt.fs.exists( fullname, onExists )
+          onExists( false )
         }
-      } else {
-        onExists( false )
+
+        function onExists( exists ) {
+          if ( !exists ) {
+            callback( success )
+          } else {
+            callback()
+          }
+        }
       }
 
-      function onExists( exists ) {
-        if ( !exists ) {
-          cb( success )
+      function complete( result ) {
+        delete reserve[fullname]
+
+        if ( result === success ) {
+          touch()
+        } else if ( result ) {
+          finish( result )
         } else {
-          cb()
+          var error = new errors.UniquenessError( iteration )
+          finish( error )
         }
       }
-    }
 
-    function complete( result ) {
-      delete reserve[fullname]
-
-      if ( result === success ) {
-        touch()
-      } else if ( result ) {
-        finish( result )
-      } else {
-        var error = new errors.UniquenessError( iteration )
-        finish( error )
+      function touch() {
+        if ( opt.fs ) {
+          opt.fs.ensureFile( fullname, finish )
+        } else {
+          finish()
+        }
       }
-    }
 
-    function touch() {
-      if ( opt.fs ) {
-        opt.fs.ensureFile( fullname, finish )
-      } else {
-        finish()
+      function finish( err ) {
+        if ( err ) {
+          if ( callback )
+            callback( err )
+
+          reject( err )
+        } else {
+          if ( callback )
+            callback( null, fullname )
+
+          resolve( fullname )
+        }
       }
-    }
-
-    function finish( err ) {
-      if ( err ) {
-        cb( err )
-      } else {
-        cb( null, fullname )
-      }
-    }
-
+    })
   }
 }

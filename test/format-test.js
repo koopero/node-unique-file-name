@@ -98,7 +98,7 @@ describe('format', function() {
 //  ----------------------
 
 function hasNonASCII ( str ) {
-  var buf = new Buffer( str, 'utf8' )
+  var buf = Buffer.from( str, 'utf8' )
   var result = false
   for ( var i = 0; i < buf.length; i ++ ) {
     result = result || buf.readUInt8(i) >= 128
