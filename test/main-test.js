@@ -5,7 +5,7 @@ const main = require('../src/main')
     , eq = ass.equal
     , async = require('async')
 
-describe('uniqueFileName', function ( cb ) {
+describe('uniqueFileName', function () {
   it('will work in series on a mock filesystem', function ( cb ) {
     var
       fs = util.mockFS(),
