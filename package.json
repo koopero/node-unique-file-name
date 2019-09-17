@@ -7,7 +7,7 @@
   },
   "name": "unique-file-name",
   "description": "Creates safe, recognizable, reliable and unique names for files, in a highly configurable manner. Perfect for uploads.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "directories": {
     "src": "src",
