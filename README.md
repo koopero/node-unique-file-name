@@ -19,6 +19,7 @@ const namer = unf( {
 
 var untrustedFileName = 'dir///~@!\'long\' file name with spaces and special chars!.mp4     '
 
+// As Promise
 namer( untrustedFileName )
   .then( function ( betterName ) {
     // betterName will look somethings like this:
@@ -27,6 +28,15 @@ namer( untrustedFileName )
     // The file will already exist in upload_directory/2015-11-04 as a zero-length placeholder.
 
   })
+
+// With callback
+namer( untrustedFileName, function(err, betterName ) {
+  if(err) {
+      console.log('An error occurred :('); }
+  else {
+      console..log('The unique filename is: ' + betterName);
+  }
+})
 ```
 
 

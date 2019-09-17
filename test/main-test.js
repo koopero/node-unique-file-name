@@ -24,7 +24,6 @@ describe('uniqueFileName', function () {
       function ( cb ) {
         func( 'foo', function( err, filename ) {
           eq( filename, '/dir/foo'+count )
-
           count ++
           cb()
         })
@@ -103,6 +102,11 @@ describe('uniqueFileName', function () {
       ass( err )
       cb()
     })
+    .catch( function () {
+      // Supress UnhandledPromiseRejectionWarning
+    })
 
   })
+
+  after( util.wipeScratch )
 })
