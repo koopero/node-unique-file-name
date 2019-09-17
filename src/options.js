@@ -1,13 +1,11 @@
 const
-  _     = require('lodash'),
-  ass   = require('chai').assert
+  _     = require('lodash')
 
 const defaultOptions = {
   iterations: 100,
   path: require('path'),
   fs:   require('fs-extra'),
 }
-
 
 module.exports = parseOptions
 
@@ -44,10 +42,12 @@ function resolvePathlib( pathlib ) {
 
   var needFunction = ['parse','format','resolve']
 
-  ass.isFunction( pathlib.parse )
-  ass.isFunction( pathlib.format )
-  ass.isFunction( pathlib.resolve )
+  isFunction( pathlib.parse )
+  isFunction( pathlib.format )
+  isFunction( pathlib.resolve )
 
-
-
+  function isFunction( check ) {
+    if ( 'function' != typeof check )
+      throw new Error('Expected method to be function.')
+  }
 }
