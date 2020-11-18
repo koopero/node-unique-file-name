@@ -3,7 +3,7 @@
     "async": "2.6.3",
     "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",
-    "transliteration": "^2.1.7"
+    "transliteration": "^2.2.0"
   },
   "name": "unique-file-name",
   "description": "Creates safe, recognizable, reliable and unique names for files, in a highly configurable manner. Perfect for uploads.",
