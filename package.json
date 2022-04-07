@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "async": "2.6.3",
+    "async": "3.2.2",
     "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",
     "transliteration": "^2.1.7"
